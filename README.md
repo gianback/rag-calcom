@@ -3,14 +3,18 @@
 La aplicación usa una arquitectura **RAG (Retrieval-Augmented Generation)** para evitar enviar al modelo grandes porciones del repositorio de Cal.com. En lugar de intentar meter todo el contenido en el prompt, se indexa el código de forma inteligente y solo se envían los fragmentos realmente relevantes.
 
 ### 1. Indexación del repositorio (pre-proceso)
-- Se clona el repo público `cal.com`.
-- Usando **Tree-sitter**, se parsean archivos de múltiples extensiones (TS/JS/JSON, etc.) para extraer:
+
+- Se clona el repo público `cal.com`.  
+- Con **Tree-sitter** se parsean archivos de varias extensiones (TS/JS/JSON, etc.) para extraer unidades lógicas como:
   - funciones  
   - clases  
+  - componentes  
   - imports/exports  
-  - componentes y estructura  
-- Cada fragmento significativo se convierte a **embedding** y se almacena en un **índice vectorial**.
-- Esto se ejecuta una sola vez → no se recalculan embeddings en tiempo de consulta.
+- Para cada fragmento se genera una **descripción compacta** mediante el modelo, usando la estructura detectada como insumo.  
+- Esa descripción se convierte en un **embedding** y se almacena en un índice vectorial junto con su metadata, que incluye:
+  - el **path** del archivo origen  
+  - la **descripción generada** del fragmento  
+- Este preprocesamiento se ejecuta una sola vez; en tiempo de consulta no se vuelven a generar embeddings del repositorio.
 
 ### 2. Flujo de consulta
 
